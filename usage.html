@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Manzil Usage</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Manzil Usage</h1>
+</header>
+<h1 id="usage">Usage</h1>
+<h2 id="nixos">NixOS</h2>
+<p>Use <code>manzil.nixosModules.default</code> and declare users under
+<code>manzil.users</code>. Enabled Manzil users must also exist under
+<code>users.users</code>.</p>
+<h2 id="nix-darwin">nix-darwin</h2>
+<p>Use <code>manzil.darwinModules.default</code> and declare users under
+<code>manzil.users</code>. Enabled Manzil users must also exist under
+<code>users.users</code>.</p>
+<h2 id="user-configuration-highlights">User configuration
+highlights</h2>
+<p>Common options include:</p>
+<ul>
+<li><code>files</code></li>
+<li><code>xdg.cache.files</code></li>
+<li><code>xdg.config.files</code></li>
+<li><code>xdg.data.files</code></li>
+<li><code>xdg.state.files</code></li>
+<li><code>xdg.mime-apps</code></li>
+<li><code>packages</code></li>
+<li><code>environment.sessionVariables</code></li>
+</ul>
+<p><code>environment.loadEnv</code> is generated for you, but not
+sourced automatically.</p>
+<h2 id="file-contents">File contents</h2>
+<p>Managed files can be created from:</p>
+<ul>
+<li><code>text</code></li>
+<li><code>source</code></li>
+<li><code>generator</code> + <code>value</code></li>
+</ul>
+<h2 id="systemd-user-units">Systemd user units</h2>
+<p>On NixOS, Manzil can generate user units under
+<code>~/.config/systemd/user</code> from the per-user
+<code>systemd</code> options. <code>restartTriggers</code> and
+<code>reloadTriggers</code> on generated units are respected during
+manifest activation, so units only bounce when their trigger payloads
+actually change.</p>
+<h2 id="contracts">Contracts</h2>
+<p>Manifest mode emits <code>contracts.target_root</code> and
+<code>contracts.source_roots</code> into generated manifests. The
+bundled linker validates those contracts both when loading the manifest
+and again against resolved runtime paths before applying changes.</p>
+</body>
+</html>

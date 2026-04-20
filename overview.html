@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Manzil Overview</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Manzil Overview</h1>
+</header>
+<h1 id="overview">Overview</h1>
+<p>Manzil is an independent way to manage <code>$HOME</code> with
+Nix.</p>
+<h2 id="current-scope">Current scope</h2>
+<ul>
+<li>per-user home-file management through
+<code>manzil.users.&lt;name&gt;</code></li>
+<li>direct home files and XDG files</li>
+<li>generated text, source-backed files, or generator/value output</li>
+<li>file actions including <code>symlink</code>, <code>copy</code>,
+<code>delete</code>, <code>directory</code>, and
+<code>modify</code></li>
+<li>per-user package installation through the host user
+configuration</li>
+<li>generated session environment exports via
+<code>environment.loadEnv</code></li>
+<li>XDG <code>mimeapps.list</code> generation</li>
+<li>generated user systemd units on supported platforms</li>
+<li>opt-in restart/reload trigger handling for generated user units on
+NixOS</li>
+<li>manifest contracts that constrain allowed target and source
+roots</li>
+</ul>
+<h2 id="supported-module-entrypoints">Supported module entrypoints</h2>
+<ul>
+<li><code>manzil.nixosModules.default</code></li>
+<li><code>manzil.darwinModules.default</code></li>
+<li><code>default.nix</code> for non-flake imports</li>
+</ul>
+<h2 id="activation-modes">Activation modes</h2>
+<ul>
+<li>Default: bundled <code>manzil</code> linker for manifest-based
+activation</li>
+<li>Linux-only fallback: <code>manzil.linker = null</code> for
+systemd-tmpfiles mode</li>
+</ul>
+<p>Tmpfiles mode has a narrower behavior surface than manifest mode.
+Manifest mode is where Manzil's contracts, cleanup semantics, and
+trigger-aware unit reloads live.</p>
+</body>
+</html>
