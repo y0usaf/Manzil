@@ -2,8 +2,8 @@
 
 > منزل — *home* (ar.)
 
-A deliberately tiny replacement for Home Manager's `home.files`. Two files of
-logic — a NixOS module and a bash linker — and that's the entire project.
+A deliberately tiny replacement for Home Manager's `home.files`. A NixOS
+module plus a small Rust linker (`manzil`) — that's the entire project.
 
 ## Scope
 
@@ -77,12 +77,28 @@ per-platform abstractions. Layer those on top yourself if you want them.
 
 1. The module renders one JSON manifest per user (`/nix/store/...-manzil-manifest-<user>.json`).
 2. A NixOS activation script, ordered after `users`/`groups`:
-   - Runs the linker as the target user via `runuser`.
-   - Linker compares the new manifest with the previous one in `/var/lib/manzil/`
+   - Runs the `manzil` binary as the target user via `runuser`.
+   - The binary compares the new manifest with the previous one in `/var/lib/manzil/`
      and reconciles symlinks: prunes removed entries, links new ones, refreshes
      changed ones.
-   - Copies the new manifest into `/var/lib/manzil/manifest-<user>.json` for
-     the next rebuild.
+   - On linker success, the activation script copies the new manifest into
+     `/var/lib/manzil/manifest-<user>.json` for the next rebuild. On failure
+     state is left untouched so the next run can retry.
+
+### Robustness properties
+
+- **Atomic per-file replacement.** New symlinks are created at a sibling
+  `.manzil-tmp.<pid>` path and `rename(2)`d into place. No ENOENT window for
+  readers.
+- **Mutual exclusion.** `flock(2)` on `$HOME/.local/state/manzil/lock` is held
+  for the duration of a run; concurrent invocations serialise instead of
+  racing.
+- **Idempotent.** A re-run with an unchanged manifest performs zero writes and
+  emits zero output.
+- **Continue-on-error.** Per-entry failures are reported on stderr; the run
+  exits non-zero only if any entry failed, but every other entry is still
+  attempted.
+- **No runtime dependencies** beyond `glibc`. The binary is ~370 KiB.
 
 ### Manifest schema
 
@@ -100,7 +116,8 @@ per-platform abstractions. Layer those on top yourself if you want them.
 - Target in old manifest, not in new → removed iff it's still a symlink.
   User-replaced regular files are left alone (with a warning).
 - Target in new manifest:
-  - Existing symlink → atomically updated with `ln -sfn`.
+  - Existing symlink to the correct source → no-op (silent).
+  - Existing symlink to a different source → atomic swap.
   - Existing non-symlink + `clobber=true`  → removed and replaced.
   - Existing non-symlink + `clobber=false` → warned, skipped.
   - Missing → created.
@@ -108,7 +125,7 @@ per-platform abstractions. Layer those on top yourself if you want them.
 You can invoke the linker directly:
 
 ```sh
-manzil-link /path/to/new.json /var/lib/manzil/manifest-alice.json
+manzil /path/to/new.json /var/lib/manzil/manifest-alice.json
 ```
 
 ## Non-goals
@@ -119,6 +136,15 @@ manzil-link /path/to/new.json /var/lib/manzil/manifest-alice.json
 - Per-file uid/gid/perms beyond `executable` — symlinks don't carry mode, and
   the user owns their own home.
 
+## Building the linker
+
+```sh
+nix build .#manzil           # via flake
+cargo build --release        # directly
+```
+
+The binary depends only on `serde`, `serde_json`, and `libc`.
+
 ## License
 
-MIT, or whatever you like — the whole thing is ~150 lines.
+MIT. The whole thing is ~350 lines: ~155 nix + ~190 rust.
